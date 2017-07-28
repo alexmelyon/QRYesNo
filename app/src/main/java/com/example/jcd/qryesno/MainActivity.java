@@ -63,4 +63,8 @@ public class MainActivity extends AppCompatActivity {
         // --------------------
         qrEader.releaseAndCleanup();
     }
+
+    public void onClick() {
+        Log.d("JCD", "ON CLICK");
+    }
 }
