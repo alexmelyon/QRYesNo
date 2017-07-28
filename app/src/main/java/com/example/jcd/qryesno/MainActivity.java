@@ -4,14 +4,16 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.SurfaceView;
-import android.widget.TextView;
+import android.widget.CompoundButton;
+import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import github.nisrulz.qreader.QRDataListener;
 import github.nisrulz.qreader.QREader;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView text;
+//    private TextView text;
 
     // QREader
     private SurfaceView mySurfaceView;
@@ -21,6 +23,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //
+        ((ToggleButton)findViewById(R.id.toggleButton)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                if(isChecked) {
+                    qrEader.start();
+                } else {
+                    qrEader.stop();
+                }
+            }
+        });
 
         // Setup SurfaceView
         // -----------------
@@ -32,12 +45,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDetected(final String data) {
                 Log.d("QREader", "Value : " + data);
-                text.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        text.setText(data);
-                    }
-                });
+                Toast.makeText(MainActivity.this, data, Toast.LENGTH_LONG);
+//                text.post(new Runnable() {
+//                    @Override
+//                    public void run() {
+////                        text.setText(data);
+//                    }
+//                });
             }
         }).facing(QREader.BACK_CAM)
                 .enableAutofocus(true)
@@ -62,9 +76,5 @@ public class MainActivity extends AppCompatActivity {
         // Cleanup in onPause()
         // --------------------
         qrEader.releaseAndCleanup();
-    }
-
-    public void onClick() {
-        Log.d("JCD", "ON CLICK");
     }
 }
