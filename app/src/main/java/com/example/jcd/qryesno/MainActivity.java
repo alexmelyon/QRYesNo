@@ -7,7 +7,9 @@ import android.view.View;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +19,7 @@ public class MainActivity extends AppCompatActivity {
     private final int REQ_SCAN = 0;
     private final String KEY_NAME = "name";
     private final String KEY_JOB_TITLE = "jobTitle";
+    private final String KEY_TIME = "time";
 
     private ListView members_list;
     private List<Map<String, String>> members = new ArrayList<>();
@@ -29,9 +32,9 @@ public class MainActivity extends AppCompatActivity {
         members_list = (ListView) findViewById(R.id.members_list);
         adapter = new SimpleAdapter(MainActivity.this,
                 members,
-                android.R.layout.simple_list_item_2,
-                new String[]{KEY_NAME, KEY_JOB_TITLE},
-                new int[]{android.R.id.text1, android.R.id.text2});
+                R.layout.member_item,
+                new String[]{KEY_NAME, KEY_JOB_TITLE, KEY_TIME},
+                new int[]{R.id.item_name, R.id.item_job_title, R.id.item_time});
         members_list.setAdapter(adapter);
     }
 
@@ -49,8 +52,15 @@ public class MainActivity extends AppCompatActivity {
             Map<String, String> person = new HashMap<>();
             person.put(KEY_NAME, text);
             person.put(KEY_JOB_TITLE, KEY_JOB_TITLE);
+            person.put(KEY_TIME, getCurrentHHmm());
             members.add(0, person);
             adapter.notifyDataSetChanged();
         }
+    }
+
+    private String getCurrentHHmm() {
+        SimpleDateFormat format = new SimpleDateFormat("HH:mm");
+        String HHmm = format.format(new Date());
+        return HHmm;
     }
 }

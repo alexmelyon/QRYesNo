@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:minHeight="?attr/listPreferredItemHeight"
+    android:mode="twoLine">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+
+        <TextView
+            android:id="@+id/item_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_weight="1"
+            android:text="Name"
+            android:textAppearance="?attr/textAppearanceListItem"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/item_job_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@id/item_name"
+            android:layout_alignStart="@id/item_name"
+            android:layout_below="@id/item_name"
+            android:layout_gravity="bottom"
+            android:layout_marginBottom="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_weight="1"
+            android:text="Job title" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/item_time"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_gravity="right|center_vertical"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:minWidth="60dp"
+        android:text="00:00" />
+
+</FrameLayout>
