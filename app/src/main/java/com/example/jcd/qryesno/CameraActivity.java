@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.SurfaceView;
+import android.widget.Toast;
 
 import github.nisrulz.qreader.QRDataListener;
 import github.nisrulz.qreader.QREader;
@@ -29,11 +30,30 @@ public class CameraActivity extends AppCompatActivity {
         qrEader = new QREader.Builder(this, mySurfaceView, new QRDataListener() {
             @Override
             public void onDetected(final String data) {
-                Log.d("QREader", "Value : " + data);
-                Intent result = new Intent();
-                result.putExtra("text", data);
-                setResult(RESULT_OK, result);
+                Log.d("QReader", "QR: " + data);
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra("text", data);
+                setResult(RESULT_OK, resultIntent);
                 finish();
+                String url = "http://web-temp.tankionline.com/pages/moscow/get_info/?code=" + data;
+                if (!DownloadTask.isNetworkConnected(CameraActivity.this)) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(CameraActivity.this, "NETWORK UNAVAILABLE", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } else {
+                    new DownloadTask(url, new DownloadTask.DownloadCallback() {
+                        @Override
+                        public void onDownload(String data) {
+                            Intent resultIntent = new Intent();
+                            resultIntent.putExtra("text", data);
+                            setResult(RESULT_OK, resultIntent);
+                            finish();
+                        }
+                    });
+                }
             }
         }).facing(QREader.BACK_CAM)
                 .enableAutofocus(true)
