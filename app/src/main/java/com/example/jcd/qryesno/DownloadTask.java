@@ -76,8 +76,9 @@ public class DownloadTask extends AsyncTask<String, Void, String> {
         StringBuilder responseStrBuilder = new StringBuilder();
 
         String inputStr;
-        while ((inputStr = streamReader.readLine()) != null)
+        while ((inputStr = streamReader.readLine()) != null) {
             responseStrBuilder.append(inputStr);
+        }
         return responseStrBuilder.toString();
     }
 
