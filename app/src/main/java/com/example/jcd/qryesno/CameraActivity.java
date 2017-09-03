@@ -60,8 +60,8 @@ public class CameraActivity extends AppCompatActivity {
 //                            resultIntent.putExtra("text", result);
 //                            setResult(RESULT_OK, resultIntent);
 //                            finish();
-                            if(MainApp.isDebug()) {
-                                createAlert("{\"response\":{\"ticket\":\"TICKET_0\", \"type\":\"STANDART\", \"nick\":\"NICK_0\", \"email\":\"EMAIL_0\", \"confirmed\":\"0\"}}");
+                            if (MainApp.isDebug()) {
+                                createAlert(code);
                             } else if ("".equals(result.error)) {
                                 createAlert(result.result);
                             } else {
@@ -79,7 +79,7 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     private void createAlert(String jsonString) {
-        if(alert != null) {
+        if (alert != null) {
             Log.i("JCD", "Already showing alert");
             return;
         }
@@ -92,8 +92,7 @@ public class CameraActivity extends AppCompatActivity {
             builder = new AlertDialog.Builder(CameraActivity.this);
         }
         try {
-            JSONObject json = null;
-            json = new JSONObject(jsonString);
+            JSONObject json = new JSONObject(jsonString);
             JSONObject response = json.getJSONObject("response");
 //            Log.i("QReader", "CONFIRMED: " + (response.has("confirmed") ? response.getString("confirmed") : ""));
             Log.i("QReader", "TICKET: " + response.getString("ticket"));
@@ -105,31 +104,40 @@ public class CameraActivity extends AppCompatActivity {
 //            Log.i("QReader", "NAME: " + (response.has("name") ? response.getString("name") : ""));
 //            Log.i("QReader", "AGE: " + (response.has("age") ? response.getString("age") : ""));
 
-            builder.setIcon(response.has("confirmed") && response.getString("confirmed").equals("0")
-                ? R.drawable.ic_check_circle_white_24dp
-                : R.drawable.ic_highlight_off_white_24dp);
-            builder.setTitle(response.getString("type"));
-//            String reg_date = response.getString("confirmed").equals("0")
-//                ? ""
-//                : "\n" + response.getString("reg_date");
-            builder.setMessage(response.getString("nick") + "\n" + response.getString("email"));
-            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    alert = null;
+            if (response.has("confirmed") && response.getString("confirmed").equals("0")) {
+                builder.setIcon(R.drawable.ic_check_circle_white_24dp);
+                builder.setTitle(response.getString("type"));
+                builder.setMessage(response.getString("nick") + "\n" + response.getString("email"));
+            } else if (response.has("confirmed") && response.getString("confirmed").equals("1")) {
+                builder.setIcon(R.drawable.ic_highlight_off_white_24dp);
+                builder.setTitle("Повтор");
+                String reg_date = "";
+                if (response.has("reg_date")) {
+                    reg_date = response.getString("reg_date");
                 }
-            });
-            alert = builder.create();
-            alert.show();
+                builder.setMessage("Уже просканирован '" + reg_date + "'");
+            } else {
+                builder.setIcon(R.drawable.ic_help_outline_white_24dp);
+                builder.setTitle(response.getString("type"));
+                builder.setMessage(response.getString("nick") + "\n" + response.getString("email"));
+            }
 
         } catch (JSONException e) {
             Toast.makeText(CameraActivity.this, "ERROR JSON", Toast.LENGTH_LONG).show();
-            e.printStackTrace();
             Log.e("JCD", "ERROR JSON '" + jsonString + "'", e);
 
             builder.setIcon(R.drawable.ic_error_white_24dp);
+            builder.setTitle("Error json");
             builder.setMessage(jsonString);
         }
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                alert = null;
+            }
+        });
+        alert = builder.create();
+        alert.show();
     }
 
     @Override
