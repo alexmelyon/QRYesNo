@@ -16,13 +16,21 @@ import java.net.URL;
  * Created by melekhin on 30.08.2017.
  */
 
-public class DownloadTask extends AsyncTask<String, Void, String> {
+public class DownloadTask extends AsyncTask<String, Void, DownloadTask.DownloadResult> {
 
     private String urlString = "";
     private DownloadCallback callback;
 
+    public class DownloadResult {
+        public String result;
+        public String error;
+        public DownloadResult(String result, String error) {
+            this.result = result;
+            this.error = error;
+        }
+    }
     public interface DownloadCallback {
-        public void onDownload(String result);
+        public void onDownload(DownloadResult result);
     }
 
     public DownloadTask(String url, DownloadCallback callback) {
@@ -32,22 +40,22 @@ public class DownloadTask extends AsyncTask<String, Void, String> {
     }
 
     @Override
-    protected String doInBackground(String... strings) {
+    protected DownloadResult doInBackground(String... strings) {
         try {
 //            String result = (String)new URL(this.urlString).openConnection().getContent();
             InputStream input = new URL(this.urlString).openConnection().getInputStream();
             String result = fromInputStream(input);
             Log.i("QReader", "RESULT: " + result);
-            return result;
+            return new DownloadResult(result, "");
         } catch (IOException e) {
             e.printStackTrace();
             Log.e("QReader", "Cannot download url '" + urlString + "'", e);
-            return "Error: " + e.getMessage();
+            return new DownloadResult("", "Error: " + e.getMessage());
         }
     }
 
     @Override
-    protected void onPostExecute(String s) {
+    protected void onPostExecute(DownloadResult s) {
         this.callback.onDownload(s);
     }
 

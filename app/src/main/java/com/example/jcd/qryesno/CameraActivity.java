@@ -1,6 +1,5 @@
 package com.example.jcd.qryesno;
 
-import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
@@ -43,8 +42,12 @@ public class CameraActivity extends AppCompatActivity {
             @Override
             public void onDetected(final String data) {
                 Log.d("QReader", "QR: " + data);
-                String url = "http://web-temp.tankionline.com/pages/moscow/get_info/?code=" + data;
-                if (!DownloadTask.isNetworkConnected(CameraActivity.this)) {
+                String url = ""; // "http://tankionline.com/pages/moscow/get_info/?code=" + data;
+                if(BuildConfig.DEBUG) {
+//                    url = "http://web-temp.tankionline.com/pages/moscow/get_info/?code=" + data;
+                    url = "https://raw.githubusercontent.com/alexmelyon/QRYesNo/master/test_query.json";
+                }
+                if (!BuildConfig.DEBUG && !DownloadTask.isNetworkConnected(CameraActivity.this)) {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -54,22 +57,25 @@ public class CameraActivity extends AppCompatActivity {
                 } else {
                     new DownloadTask(url, new DownloadTask.DownloadCallback() {
                         @Override
-                        public void onDownload(String result) {
-                            Intent resultIntent = new Intent();
-                            resultIntent.putExtra("text", result);
-                            setResult(RESULT_OK, resultIntent);
-                            finish();
-
-//                            alert(result);
+                        public void onDownload(DownloadTask.DownloadResult result) {
+//                            Intent resultIntent = new Intent();
+//                            resultIntent.putExtra("text", result);
+//                            setResult(RESULT_OK, resultIntent);
+//                            finish();
+                            if ("".equals(result.error)) {
+                                alert(result.result);
+                            } else {
+                                Toast.makeText(CameraActivity.this, result.error, Toast.LENGTH_LONG).show();
+                            }
                         }
                     });
                 }
             }
         }).facing(QREader.BACK_CAM)
-                .enableAutofocus(true)
-                .height(mySurfaceView.getHeight())
-                .width(mySurfaceView.getWidth())
-                .build();
+            .enableAutofocus(true)
+            .height(mySurfaceView.getHeight())
+            .width(mySurfaceView.getWidth())
+            .build();
     }
 
     private void alert(String jsonString) {
@@ -94,16 +100,19 @@ public class CameraActivity extends AppCompatActivity {
 //            Log.i("QReader", "AGE: " + (response.has("age") ? response.getString("age") : ""));
 
             builder.setIcon(response.getString("confirmed").equals("0")
-                    ? R.drawable.ic_check_circle_white_24dp
-                    : R.drawable.ic_highlight_off_white_24dp);
+                ? R.drawable.ic_check_circle_white_24dp
+                : R.drawable.ic_highlight_off_white_24dp);
             builder.setTitle(response.getString("type"));
             String reg_date = response.getString("confirmed").equals("0")
-                    ? ""
-                    : "\n" + response.getString("reg_date");
+                ? ""
+                : "\n" + response.getString("reg_date");
             builder.setMessage(response.getString("nick") + "\n" + response.getString("email") + reg_date);
+            builder.show();
+
         } catch (JSONException e) {
+            Toast.makeText(CameraActivity.this, "ERROR JSON", Toast.LENGTH_LONG).show();
             e.printStackTrace();
-            Log.e("JCD", e.getMessage(), e);
+            Log.e("JCD", "ERROR JSON '" + jsonString + "'", e);
 
             builder.setIcon(R.drawable.ic_error_white_24dp);
             builder.setMessage(jsonString);
