@@ -13,4 +13,16 @@ public class MainApp extends Application {
         super.onCreate();
 
     }
+
+    public static Boolean isDebug() {
+        return BuildConfig.DEBUG;
+    }
+
+    public static String getUrl(String code) {
+        if(isDebug()) {
+            return "https://raw.githubusercontent.com/alexmelyon/QRYesNo/master/test_query.json";
+        } else {
+            return "http://tankionline.com/pages/moscow/get_info/?code=" + code;
+        }
+    }
 }

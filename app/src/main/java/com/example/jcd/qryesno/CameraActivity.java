@@ -42,14 +42,10 @@ public class CameraActivity extends AppCompatActivity {
         // ------------
         qrEader = new QREader.Builder(this, mySurfaceView, new QRDataListener() {
             @Override
-            public void onDetected(final String data) {
-                Log.d("QReader", "QR: " + data);
-                String url = ""; // "http://tankionline.com/pages/moscow/get_info/?code=" + data;
-                if(BuildConfig.DEBUG) {
-//                    url = "http://web-temp.tankionline.com/pages/moscow/get_info/?code=" + data;
-                    url = "https://raw.githubusercontent.com/alexmelyon/QRYesNo/master/test_query.json";
-                }
-                if (!BuildConfig.DEBUG && !DownloadTask.isNetworkConnected(CameraActivity.this)) {
+            public void onDetected(final String code) {
+                Log.d("QReader", "QR: " + code);
+                String url = MainApp.getUrl(code);
+                if (!MainApp.isDebug() && !DownloadTask.isNetworkConnected(CameraActivity.this)) {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -64,8 +60,8 @@ public class CameraActivity extends AppCompatActivity {
 //                            resultIntent.putExtra("text", result);
 //                            setResult(RESULT_OK, resultIntent);
 //                            finish();
-                            if(BuildConfig.DEBUG) {
-                                createAlert("{\"response\":{\"ticket\":\"TICKET_0\", \"type\":\"STANDART\", \"nick\":\"NICK_0\", \"email\":\"EMAIL_0\"}}");
+                            if(MainApp.isDebug()) {
+                                createAlert("{\"response\":{\"ticket\":\"TICKET_0\", \"type\":\"STANDART\", \"nick\":\"NICK_0\", \"email\":\"EMAIL_0\", \"confirmed\":\"0\"}}");
                             } else if ("".equals(result.error)) {
                                 createAlert(result.result);
                             } else {
@@ -83,15 +79,17 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     private void createAlert(String jsonString) {
+        if(alert != null) {
+            Log.i("JCD", "Already showing alert");
+            return;
+        }
+        MainActivity.instance.addItem(jsonString);
+
         AlertDialog.Builder builder;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             builder = new AlertDialog.Builder(CameraActivity.this, android.R.style.Theme_Material_Dialog_Alert);
         } else {
             builder = new AlertDialog.Builder(CameraActivity.this);
-        }
-        if(alert != null) {
-            Log.i("JCD", "Already showing alert");
-            return;
         }
         try {
             JSONObject json = null;
@@ -107,9 +105,9 @@ public class CameraActivity extends AppCompatActivity {
 //            Log.i("QReader", "NAME: " + (response.has("name") ? response.getString("name") : ""));
 //            Log.i("QReader", "AGE: " + (response.has("age") ? response.getString("age") : ""));
 
-//            builder.setIcon(response.getString("confirmed").equals("0")
-//                ? R.drawable.ic_check_circle_white_24dp
-//                : R.drawable.ic_highlight_off_white_24dp);
+            builder.setIcon(response.has("confirmed") && response.getString("confirmed").equals("0")
+                ? R.drawable.ic_check_circle_white_24dp
+                : R.drawable.ic_highlight_off_white_24dp);
             builder.setTitle(response.getString("type"));
 //            String reg_date = response.getString("confirmed").equals("0")
 //                ? ""

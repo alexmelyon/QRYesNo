@@ -1,14 +1,13 @@
 package com.example.jcd.qryesno;
 
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,10 +22,12 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
 
     private final int REQ_SCAN = 0;
-    private final String KEY_ICON = "icon";
-    private final String KEY_NAME = "name";
-    private final String KEY_JOB_TITLE = "jobTitle";
+    private final String KEY_TYPE = "type";
+    private final String KEY_NICK = "name";
+    private final String KEY_EMAIL = "email";
     private final String KEY_TIME = "time";
+
+    public static MainActivity instance;
 
     private ListView members_list;
     private List<Map<String, String>> members = new ArrayList<>();
@@ -35,25 +36,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        instance = this;
         setContentView(R.layout.activity_main);
         members_list = (ListView) findViewById(R.id.members_list);
         adapter = new SimpleAdapter(MainActivity.this,
-                members,
-                R.layout.member_item,
-                new String[] { KEY_ICON, KEY_NAME, KEY_JOB_TITLE, KEY_TIME },
-                new int[] { R.id.item_icon, R.id.item_name, R.id.item_job_title, R.id.item_time });
-        adapter.setViewBinder(new SimpleAdapter.ViewBinder() {
-            @Override
-            public boolean setViewValue(View view, Object data, String text) {
-                if(view.getId() == R.id.item_icon) {
-                    ImageView imageView = (ImageView) view;
-                    Drawable drawable = (Drawable) data;
-                    imageView.setImageDrawable(drawable);
-                    return true;
-                }
-                return false;
-            }
-        });
+            members,
+            R.layout.member_item,
+            new String[]{KEY_TYPE, KEY_NICK, KEY_EMAIL, KEY_TIME},
+            new int[]{R.id.item_type, R.id.item_name, R.id.item_job_title, R.id.item_time});
         members_list.setAdapter(adapter);
     }
 
@@ -67,27 +57,39 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQ_SCAN && resultCode == RESULT_OK) {
-            String text = data.getStringExtra("text");
-            try {
-                JSONObject json = new JSONObject(text);
-                JSONObject response = json.getJSONObject("response");
-                Log.i("QReader", "TICKET: " + response.getString("ticket"));
-                Log.i("QReader", "TYPE: " + response.getString("type")); // STANDARD, ADVANCED, VIP
-                Log.i("QReader", "NICK: " + response.getString("nick"));
-                Log.i("QReader", "EMAIL: " + response.getString("email"));
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            Map<String, String> person = new HashMap<>();
-//            person.put(KEY_ICON, R.drawable.ic_check_circle_white_24dp);
-            person.put(KEY_NAME, text);
-            person.put(KEY_JOB_TITLE, KEY_JOB_TITLE);
-            person.put(KEY_TIME, getCurrentHHmm());
-            members.add(0, person);
-            adapter.notifyDataSetChanged();
+            String jsonString = data.getStringExtra("text");
+            addItem(jsonString);
         }
+    }
+
+    public void addItem(String jsonString) {
+        String type = "";
+        String nick = "";
+        String email = "";
+        try {
+            JSONObject json = new JSONObject(jsonString);
+            JSONObject response = json.getJSONObject("response");
+            type = response.getString("type");
+            if (response.has("confirmed") && response.getString("confirmed").equals("1")) {
+                type = "ERROR";
+            }
+            nick = response.getString("nick");
+            email = response.getString("email");
+
+        } catch (JSONException e) {
+            Log.e("JCD", "ERROR JSON '" + jsonString + "'", e);
+            Toast.makeText(MainActivity.this, "ERROR JSON", Toast.LENGTH_LONG).show();
+            type = "ERROR";
+        }
+
+        Map<String, String> person = new HashMap<>();
+//            person.put(KEY_ICON, R.drawable.ic_check_circle_white_24dp);
+        person.put(KEY_TYPE, type.substring(0, 1).toUpperCase());
+        person.put(KEY_NICK, nick);
+        person.put(KEY_EMAIL, email);
+        person.put(KEY_TIME, getCurrentHHmm());
+        members.add(0, person);
+        adapter.notifyDataSetChanged();
     }
 
     private String getCurrentHHmm() {
