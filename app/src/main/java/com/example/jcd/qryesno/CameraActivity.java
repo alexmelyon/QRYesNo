@@ -1,5 +1,6 @@
 package com.example.jcd.qryesno;
 
+import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
@@ -21,6 +22,7 @@ public class CameraActivity extends AppCompatActivity {
     // QREader
     private SurfaceView mySurfaceView;
     private QREader qrEader;
+    private AlertDialog alert;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,8 +64,10 @@ public class CameraActivity extends AppCompatActivity {
 //                            resultIntent.putExtra("text", result);
 //                            setResult(RESULT_OK, resultIntent);
 //                            finish();
-                            if ("".equals(result.error)) {
-                                alert(result.result);
+                            if(BuildConfig.DEBUG) {
+                                createAlert("{\"response\":{\"ticket\":\"TICKET_0\", \"type\":\"STANDART\", \"nick\":\"NICK_0\", \"email\":\"EMAIL_0\"}}");
+                            } else if ("".equals(result.error)) {
+                                createAlert(result.result);
                             } else {
                                 Toast.makeText(CameraActivity.this, result.error, Toast.LENGTH_LONG).show();
                             }
@@ -78,12 +82,16 @@ public class CameraActivity extends AppCompatActivity {
             .build();
     }
 
-    private void alert(String jsonString) {
+    private void createAlert(String jsonString) {
         AlertDialog.Builder builder;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             builder = new AlertDialog.Builder(CameraActivity.this, android.R.style.Theme_Material_Dialog_Alert);
         } else {
             builder = new AlertDialog.Builder(CameraActivity.this);
+        }
+        if(alert != null) {
+            Log.i("JCD", "Already showing alert");
+            return;
         }
         try {
             JSONObject json = null;
@@ -99,15 +107,22 @@ public class CameraActivity extends AppCompatActivity {
 //            Log.i("QReader", "NAME: " + (response.has("name") ? response.getString("name") : ""));
 //            Log.i("QReader", "AGE: " + (response.has("age") ? response.getString("age") : ""));
 
-            builder.setIcon(response.getString("confirmed").equals("0")
-                ? R.drawable.ic_check_circle_white_24dp
-                : R.drawable.ic_highlight_off_white_24dp);
+//            builder.setIcon(response.getString("confirmed").equals("0")
+//                ? R.drawable.ic_check_circle_white_24dp
+//                : R.drawable.ic_highlight_off_white_24dp);
             builder.setTitle(response.getString("type"));
-            String reg_date = response.getString("confirmed").equals("0")
-                ? ""
-                : "\n" + response.getString("reg_date");
-            builder.setMessage(response.getString("nick") + "\n" + response.getString("email") + reg_date);
-            builder.show();
+//            String reg_date = response.getString("confirmed").equals("0")
+//                ? ""
+//                : "\n" + response.getString("reg_date");
+            builder.setMessage(response.getString("nick") + "\n" + response.getString("email"));
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    alert = null;
+                }
+            });
+            alert = builder.create();
+            alert.show();
 
         } catch (JSONException e) {
             Toast.makeText(CameraActivity.this, "ERROR JSON", Toast.LENGTH_LONG).show();
