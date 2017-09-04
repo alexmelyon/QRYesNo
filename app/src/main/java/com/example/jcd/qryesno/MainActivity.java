@@ -1,7 +1,11 @@
 package com.example.jcd.qryesno;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -22,6 +26,7 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
 
     private final int REQ_SCAN = 0;
+    private final int REQ_CAMERA = 1;
     private final String KEY_TYPE = "type";
     private final String KEY_NICK = "name";
     private final String KEY_EMAIL = "email";
@@ -40,11 +45,19 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         members_list = (ListView) findViewById(R.id.members_list);
         adapter = new SimpleAdapter(MainActivity.this,
-            members,
-            R.layout.member_item,
-            new String[]{KEY_TYPE, KEY_NICK, KEY_EMAIL, KEY_TIME},
-            new int[]{R.id.item_type, R.id.item_name, R.id.item_job_title, R.id.item_time});
+                members,
+                R.layout.member_item,
+                new String[]{KEY_TYPE, KEY_NICK, KEY_EMAIL, KEY_TIME},
+                new int[]{R.id.item_type, R.id.item_name, R.id.item_job_title, R.id.item_time});
         members_list.setAdapter(adapter);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED) {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, REQ_CAMERA);
+        }
     }
 
     public void onClick(View onClick) {
@@ -56,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        Log.i("JCD", "ON ACTIVITY RESULT: req=" + requestCode + ", res=" + resultCode);
         if (requestCode == REQ_SCAN && resultCode == RESULT_OK) {
             String jsonString = data.getStringExtra("text");
             addItem(jsonString);
