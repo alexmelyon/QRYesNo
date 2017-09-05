@@ -115,7 +115,7 @@ public class CameraActivity extends AppCompatActivity {
                 if (response.has("reg_date")) {
                     reg_date = response.getString("reg_date");
                 }
-                builder.setMessage("Уже просканирован '" + reg_date + "'");
+                builder.setMessage("Уже просканирован\n'" + reg_date + "'");
             } else {
                 builder.setIcon(R.drawable.ic_help_outline_white_24dp);
                 builder.setTitle(response.getString("type"));
