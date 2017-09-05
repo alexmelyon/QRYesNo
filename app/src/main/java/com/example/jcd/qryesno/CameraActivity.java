@@ -1,6 +1,7 @@
 package com.example.jcd.qryesno;
 
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
@@ -83,12 +84,11 @@ public class CameraActivity extends AppCompatActivity {
     private void createAlert(String jsonString) {
         MainActivity.instance.addItem(jsonString);
 
-        AlertDialog.Builder builder;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            builder = new AlertDialog.Builder(CameraActivity.this, android.R.style.Theme_Material_Dialog_Alert);
-        } else {
-            builder = new AlertDialog.Builder(CameraActivity.this);
-        }
+        int theme = android.R.style.Theme_Dialog;
+        int icon = 0;
+        String title = "";
+        String message = "";
+
         try {
             JSONObject json = new JSONObject(jsonString);
             JSONObject response = json.getJSONObject("response");
@@ -103,38 +103,73 @@ public class CameraActivity extends AppCompatActivity {
 //            Log.i("QReader", "AGE: " + (response.has("age") ? response.getString("age") : ""));
 
             if (response.has("confirmed") && response.getString("confirmed").equals("0")) {
-                builder.setIcon(R.drawable.ic_check_circle_white_24dp);
-                builder.setTitle(response.getString("type"));
-                builder.setMessage(response.getString("nick") + "\n" + response.getString("email"));
+                icon = R.drawable.ic_check_circle_white_24dp;
+                title = response.getString("type");
+                theme = getTheme(title);
+                message = response.getString("nick") + "\n" + response.getString("email");
             } else if (response.has("confirmed") && response.getString("confirmed").equals("1")) {
-                builder.setIcon(R.drawable.ic_highlight_off_white_24dp);
-                builder.setTitle("Повтор");
+                icon = R.drawable.ic_highlight_off_white_24dp;
+                title = "Повтор";
                 String reg_date = "";
                 if (response.has("reg_date")) {
                     reg_date = response.getString("reg_date");
                 }
-                builder.setMessage("Уже просканирован\n'" + reg_date + "'");
+                message = "Уже просканирован\n'" + reg_date + "'";
             } else {
-                builder.setIcon(R.drawable.ic_help_outline_white_24dp);
-                builder.setTitle(response.getString("type"));
-                builder.setMessage(response.getString("nick") + "\n" + response.getString("email"));
+                icon = R.drawable.ic_help_outline_white_24dp;
+                title = response.getString("type");
+                message = response.getString("nick") + "\n" + response.getString("email");
             }
 
         } catch (JSONException e) {
             Toast.makeText(CameraActivity.this, "ERROR JSON", Toast.LENGTH_LONG).show();
             Log.e("JCD", "ERROR JSON '" + jsonString + "'", e);
 
-            builder.setIcon(R.drawable.ic_error_white_24dp);
-            builder.setTitle("Error json");
-            builder.setMessage(jsonString);
+            icon = R.drawable.ic_error_white_24dp;
+            title = "Error json";
+            message = jsonString;
         }
+
+        AlertDialog.Builder builder;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            builder = new AlertDialog.Builder(CameraActivity.this, theme);
+        } else {
+            builder = new AlertDialog.Builder(CameraActivity.this);
+        }
+        builder.setIcon(icon);
+        builder.setTitle(title);
+        builder.setMessage(message);
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 isDetected = false;
             }
         });
-        builder.create().show();
+        final AlertDialog alert = builder.create();
+        final int finalTheme = theme;
+        alert.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialogInterface) {
+                if(finalTheme == R.style.YellowAlert) {
+                    alert.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(Color.BLACK);
+                } else {
+                    alert.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(Color.WHITE);
+                }
+            }
+        });
+        alert.show();
+    }
+
+    private int getTheme(String type) {
+        String first = type.substring(0, 1).toUpperCase();
+        if(first.equals("S")) {
+            return R.style.GreenAlert;
+        } else if(first.equals("A")) {
+            return R.style.BlueAlert;
+        } else if(first.equals("V")) {
+            return R.style.YellowAlert;
+        }
+        return android.R.style.Theme_Dialog;
     }
 
     @Override
