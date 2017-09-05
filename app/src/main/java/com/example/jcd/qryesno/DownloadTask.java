@@ -43,6 +43,9 @@ public class DownloadTask extends AsyncTask<String, Void, DownloadTask.DownloadR
     protected DownloadResult doInBackground(String... strings) {
         try {
 //            String result = (String)new URL(this.urlString).openConnection().getContent();
+            if(MainApp.isDebug()) {
+                return new DownloadResult("Debug result", "");
+            }
             InputStream input = new URL(this.urlString).openConnection().getInputStream();
             String result = fromInputStream(input);
             Log.i("QReader", "RESULT: " + result);
@@ -71,6 +74,9 @@ public class DownloadTask extends AsyncTask<String, Void, DownloadTask.DownloadR
     }
 
     public static boolean isNetworkConnected(Context context) {
+        if(MainApp.isDebug()) {
+            return true;
+        }
         ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         return networkInfo != null && networkInfo.isConnected();

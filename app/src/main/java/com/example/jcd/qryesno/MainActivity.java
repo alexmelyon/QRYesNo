@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.util.ArraySet;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -20,8 +21,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     public static MainActivity instance;
 
     private ListView members_list;
+
     private List<Map<String, String>> members = new ArrayList<>();
     private SimpleAdapter adapter;
 
@@ -45,11 +49,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         members_list = (ListView) findViewById(R.id.members_list);
         adapter = new SimpleAdapter(MainActivity.this,
-                members,
-                R.layout.member_item,
-                new String[]{KEY_TYPE, KEY_NICK, KEY_EMAIL, KEY_TIME},
-                new int[]{R.id.item_type, R.id.item_name, R.id.item_job_title, R.id.item_time});
+            members,
+            R.layout.member_item,
+            new String[]{KEY_TYPE, KEY_NICK, KEY_EMAIL, KEY_TIME},
+            new int[]{R.id.item_type, R.id.item_name, R.id.item_job_title, R.id.item_time});
         members_list.setAdapter(adapter);
+        loadPrefs();
     }
 
     @Override
@@ -59,6 +64,14 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, REQ_CAMERA);
         }
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    // TODO colored alert
+    // TODO manual code
 
     public void onClick(View onClick) {
         if (onClick.getId() == R.id.scan_button) {
@@ -97,18 +110,58 @@ public class MainActivity extends AppCompatActivity {
         }
 
         Map<String, String> person = new HashMap<>();
-//            person.put(KEY_ICON, R.drawable.ic_check_circle_white_24dp);
         person.put(KEY_TYPE, type.substring(0, 1).toUpperCase());
         person.put(KEY_NICK, nick);
         person.put(KEY_EMAIL, email);
         person.put(KEY_TIME, getCurrentHHmm());
         members.add(0, person);
         adapter.notifyDataSetChanged();
+
+        savePrefs();
     }
 
     private String getCurrentHHmm() {
         SimpleDateFormat format = new SimpleDateFormat("HH:mm");
         String HHmm = format.format(new Date());
         return HHmm;
+    }
+
+    private void savePrefs() {
+        Log.i("JCD", "SAVE PREFS");
+        Set<String> membersSet = new ArraySet<>();
+        try {
+            for (Map<String, String> item : this.members) {
+                JSONObject jsonMember = new JSONObject();
+                for (String key : item.keySet()) {
+                    jsonMember.put(key, item.get(key));
+                }
+                membersSet.add(jsonMember.toString());
+            }
+        } catch (JSONException e) {
+            Log.e("JCD", "ERROR SAVE PREFS", e);
+        }
+        getPreferences(MODE_PRIVATE).edit().putStringSet("members", membersSet).apply();
+    }
+
+    private void loadPrefs() {
+        Log.i("JCD", "LOAD PREFS");
+        Set<String> _default = new ArraySet<>();
+        Set<String> membersSet = getPreferences(MODE_PRIVATE).getStringSet("members", _default);
+        try {
+            this.members.clear();
+            for (String item : membersSet) {
+                Map<String, String> member = new HashMap<>();
+                JSONObject json = new JSONObject(item);
+                Iterator<String> iter = json.keys();
+                while(iter.hasNext()) {
+                    String key = iter.next();
+                    String value = json.getString(key);
+                    member.put(key, value);
+                }
+                this.members.add(member);
+            }
+        } catch (JSONException e) {
+            Log.e("JCD", "ERROR LOAD PREFS", e);
+        }
     }
 }

@@ -22,7 +22,7 @@ public class CameraActivity extends AppCompatActivity {
     // QREader
     private SurfaceView mySurfaceView;
     private QREader qrEader;
-    private AlertDialog alert;
+    private volatile boolean isDetected = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,8 +44,13 @@ public class CameraActivity extends AppCompatActivity {
             @Override
             public void onDetected(final String code) {
                 Log.d("QReader", "QR: " + code);
-                String url = MainApp.getUrl(code);
-                if (!MainApp.isDebug() && !DownloadTask.isNetworkConnected(CameraActivity.this)) {
+                if(isDetected) {
+                    Log.i("JCD", "Already showing alert");
+                    return;
+                }
+                isDetected = true;
+
+                if (!DownloadTask.isNetworkConnected(CameraActivity.this)) {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -53,13 +58,10 @@ public class CameraActivity extends AppCompatActivity {
                         }
                     });
                 } else {
+                    String url = MainApp.getUrl(code);
                     new DownloadTask(url, new DownloadTask.DownloadCallback() {
                         @Override
                         public void onDownload(DownloadTask.DownloadResult result) {
-//                            Intent resultIntent = new Intent();
-//                            resultIntent.putExtra("text", result);
-//                            setResult(RESULT_OK, resultIntent);
-//                            finish();
                             if (MainApp.isDebug()) {
                                 createAlert(code);
                             } else if ("".equals(result.error)) {
@@ -79,10 +81,6 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     private void createAlert(String jsonString) {
-        if (alert != null) {
-            Log.i("JCD", "Already showing alert");
-            return;
-        }
         MainActivity.instance.addItem(jsonString);
 
         AlertDialog.Builder builder;
@@ -133,11 +131,10 @@ public class CameraActivity extends AppCompatActivity {
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                alert = null;
+                isDetected = false;
             }
         });
-        alert = builder.create();
-        alert.show();
+        builder.create().show();
     }
 
     @Override
