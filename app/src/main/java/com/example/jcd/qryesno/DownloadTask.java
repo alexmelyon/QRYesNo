@@ -6,6 +6,9 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,11 +25,19 @@ public class DownloadTask extends AsyncTask<String, Void, DownloadTask.DownloadR
     private DownloadCallback callback;
 
     public class DownloadResult {
-        public String result;
-        public String error;
-        public DownloadResult(String result, String error) {
-            this.result = result;
-            this.error = error;
+        public boolean isOk;
+        public String errorMessage;
+        public String ticket;
+        public String type;
+        public String nick;
+        public String email;
+        public DownloadResult(boolean error, String errorMessage, String ticket, String type, String nick, String email) {
+            this.isOk = error;
+            this.errorMessage = errorMessage;
+            this.ticket = ticket;
+            this.type = type;
+            this.nick = nick;
+            this.email = email;
         }
     }
     public interface DownloadCallback {
@@ -41,25 +52,44 @@ public class DownloadTask extends AsyncTask<String, Void, DownloadTask.DownloadR
 
     @Override
     protected DownloadResult doInBackground(String... strings) {
+        String jsonString = "";
         try {
-//            String result = (String)new URL(this.urlString).openConnection().getContent();
             if(MainApp.isDebug()) {
-                return new DownloadResult("Debug result", "");
+                return new DownloadResult(true, "", "TICKET", "STANDART", "NICK", "EMAIL");
             }
             InputStream input = new URL(this.urlString).openConnection().getInputStream();
             String result = fromInputStream(input);
             Log.i("QReader", "RESULT: " + result);
-            return new DownloadResult(result, "");
+            jsonString = result;
+            JSONObject json = new JSONObject(result);
+            String responseType = json.getString("responseType");
+            JSONObject response = json.getJSONObject("response");
+            String ticket = response.getString("ticket");
+            String type = response.getString("type");
+            String nick = response.getString("nick");
+            String email = response.getString("email");
+            if("ERROR".equals(responseType)) {
+                String responseError = json.getString("response");
+                return new DownloadResult(false, responseError, ticket, type, nick, email);
+            } else {
+                return new DownloadResult(true, "", ticket, type, nick, email);
+            }
         } catch (IOException e) {
             e.printStackTrace();
             Log.e("QReader", "Cannot download url '" + urlString + "'", e);
-            return new DownloadResult("", "Error: " + e.getMessage());
+            return new DownloadResult(false, e.getLocalizedMessage(), "", "", "", "");
+        } catch (JSONException e) {
+            Log.e("QReader", "Cannot parse json '" + jsonString + "'", e);
+            return new DownloadResult(false, e.getLocalizedMessage(), "", "", "", "");
         }
     }
 
     @Override
-    protected void onPostExecute(DownloadResult s) {
-        this.callback.onDownload(s);
+    protected void onPostExecute(DownloadResult res) {
+        if(res.isOk) {
+            MainActivity.instance.addItem(res.type, res.nick, res.email);
+        }
+        this.callback.onDownload(res);
     }
 
     private String fromInputStream(InputStream in) throws IOException {

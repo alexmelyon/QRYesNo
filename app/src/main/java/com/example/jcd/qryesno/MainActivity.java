@@ -10,9 +10,9 @@ import android.support.v4.util.ArraySet;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
-import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,12 +41,16 @@ public class MainActivity extends AppCompatActivity {
 
     private List<Map<String, String>> members = new ArrayList<>();
     private SimpleAdapter adapter;
+    private EditText manualEdit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         instance = this;
         setContentView(R.layout.activity_main);
+        manualEdit = (EditText)findViewById(R.id.manual_code);
+        ManualCodeListener manualCodeListener = new ManualCodeListener(MainActivity.this);
+        manualEdit.setOnKeyListener(manualCodeListener);
         members_list = (ListView) findViewById(R.id.members_list);
         adapter = new SimpleAdapter(MainActivity.this,
             members,
@@ -70,7 +74,6 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
     }
 
-    // TODO colored alert
     // TODO manual code
 
     public void onClick(View onClick) {
@@ -79,35 +82,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        Log.i("JCD", "ON ACTIVITY RESULT: req=" + requestCode + ", res=" + resultCode);
-        if (requestCode == REQ_SCAN && resultCode == RESULT_OK) {
-            String jsonString = data.getStringExtra("text");
-            addItem(jsonString);
-        }
-    }
-
-    public void addItem(String jsonString) {
-        String type = "";
-        String nick = "";
-        String email = "";
-        try {
-            JSONObject json = new JSONObject(jsonString);
-            JSONObject response = json.getJSONObject("response");
-            type = response.getString("type");
-            if (response.has("confirmed") && response.getString("confirmed").equals("1")) {
-                type = "ERROR";
-            }
-            nick = response.getString("nick");
-            email = response.getString("email");
-
-        } catch (JSONException e) {
-            Log.e("JCD", "ERROR JSON '" + jsonString + "'", e);
-            Toast.makeText(MainActivity.this, "ERROR JSON", Toast.LENGTH_LONG).show();
-            type = "ERROR";
-        }
+    public void addItem(String type, String nick, String email) {
 
         Map<String, String> person = new HashMap<>();
         person.put(KEY_TYPE, type.substring(0, 1).toUpperCase());

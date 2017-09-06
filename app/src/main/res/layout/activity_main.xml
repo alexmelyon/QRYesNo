@@ -1,10 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context="com.example.jcd.qryesno.MainActivity">
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:focusableInTouchMode="true"
+              android:orientation="vertical"
+              tools:context="com.example.jcd.qryesno.MainActivity">
+
+    <EditText
+        android:id="@+id/manual_code"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_weight="1"
+        android:ems="10"
+        android:hint="Enter code..."
+        android:inputType="text"
+        android:padding="8dp"/>
 
     <ListView
         android:id="@+id/members_list"
@@ -20,6 +31,6 @@
         android:layout_weight="1"
         android:minHeight="60dp"
         android:onClick="onClick"
-        android:text="SCAN" />
+        android:text="SCAN"/>
 
 </LinearLayout>
