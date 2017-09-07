@@ -63,7 +63,7 @@ public class CameraActivity extends AppCompatActivity {
                                 if(result.confirmed.equals("0")) {
                                     createAlert(result.type, result.type, result.nick + "\n" + result.email);
                                 } else {
-                                    createAlert("ERROR", "Ошибка", "Повтор");
+                                    createAlert("ERROR", "Повтор", result.nick + "\n" + result.email);
                                 }
                             } else {
                                 createAlert("ERROR", "Ошибка", result.errorMessage);

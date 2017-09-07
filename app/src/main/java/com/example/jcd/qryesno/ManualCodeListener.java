@@ -32,7 +32,11 @@ public class ManualCodeListener implements View.OnKeyListener, TextWatcher {
                 public void onDownload(DownloadTask.DownloadResult result) {
                     if (result.isOk) {
                         edit.getText().clear();
-                        ColoredAlert.show(context, result.type, result.type, result.nick + "\n" + result.email, null);
+                        if(result.confirmed.equals("0")) {
+                            ColoredAlert.show(context, result.type, result.type, result.nick + "\n" + result.email, null);
+                        } else {
+                            ColoredAlert.show(context, "ERROR", "Повтор", result.nick + "\n" + result.email, null);
+                        }
                     } else {
                         edit.setBackgroundColor(Color.parseColor("#FF8888"));
                     }
