@@ -31,13 +31,15 @@ public class DownloadTask extends AsyncTask<String, Void, DownloadTask.DownloadR
         public String type;
         public String nick;
         public String email;
-        public DownloadResult(boolean error, String errorMessage, String ticket, String type, String nick, String email) {
+        public String confirmed;
+        public DownloadResult(boolean error, String errorMessage, String ticket, String type, String nick, String email, String confirmed) {
             this.isOk = error;
             this.errorMessage = errorMessage;
             this.ticket = ticket;
             this.type = type;
             this.nick = nick;
             this.email = email;
+            this.confirmed = confirmed;
         }
     }
     public interface DownloadCallback {
@@ -55,7 +57,7 @@ public class DownloadTask extends AsyncTask<String, Void, DownloadTask.DownloadR
         String jsonString = "";
         try {
             if(MainApp.isDebug()) {
-                return new DownloadResult(true, "", "TICKET", "STANDART", "NICK", "EMAIL");
+                return new DownloadResult(true, "", "TICKET", "STANDART", "NICK", "EMAIL", "0");
             }
             InputStream input = new URL(this.urlString).openConnection().getInputStream();
             String result = fromInputStream(input);
@@ -68,19 +70,20 @@ public class DownloadTask extends AsyncTask<String, Void, DownloadTask.DownloadR
             String type = response.getString("type");
             String nick = response.getString("nick");
             String email = response.getString("email");
+            String confirmed = response.getString("confirmed");
             if("ERROR".equals(responseType)) {
                 String responseError = json.getString("response");
-                return new DownloadResult(false, responseError, ticket, type, nick, email);
+                return new DownloadResult(false, responseError, ticket, type, nick, email, confirmed);
             } else {
-                return new DownloadResult(true, "", ticket, type, nick, email);
+                return new DownloadResult(true, "", ticket, type, nick, email, confirmed);
             }
         } catch (IOException e) {
             e.printStackTrace();
             Log.e("QReader", "Cannot download url '" + urlString + "'", e);
-            return new DownloadResult(false, e.getLocalizedMessage(), "", "", "", "");
+            return new DownloadResult(false, e.getLocalizedMessage(), "", "", "", "", "");
         } catch (JSONException e) {
             Log.e("QReader", "Cannot parse json '" + jsonString + "'", e);
-            return new DownloadResult(false, e.getLocalizedMessage(), "", "", "", "");
+            return new DownloadResult(false, e.getLocalizedMessage(), "", "", "", "", "");
         }
     }
 

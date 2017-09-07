@@ -59,6 +59,8 @@ public class ColoredAlert {
             return R.style.BlueAlert;
         } else if (first.equals("V")) {
             return R.style.YellowAlert;
+        } else if(first.equals("E")) {
+            return R.style.RedAlert;
         }
         return android.R.style.Theme_Dialog;
     }

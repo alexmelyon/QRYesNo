@@ -14,7 +14,8 @@ public class MainApp extends Application {
     }
 
     public static Boolean isDebug() {
-        return BuildConfig.DEBUG;
+//        return BuildConfig.DEBUG;
+        return false;
     }
 
     public static String getUrl(String code) {
