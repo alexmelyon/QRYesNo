@@ -2,6 +2,8 @@ package com.example.jcd.qryesno;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -11,18 +13,19 @@ import android.widget.EditText;
  * Created by JCD on 06.09.2017.
  */
 
-public class ManualCodeListener implements View.OnKeyListener {
+public class ManualCodeListener implements View.OnKeyListener, TextWatcher {
 
     private Context context;
+    private EditText edit;
 
-    public ManualCodeListener(Context context) {
+    public ManualCodeListener(Context context, EditText edit) {
         this.context = context;
+        this.edit = edit;
     }
 
     @Override
     public boolean onKey(View view, int keyCode, KeyEvent keyEvent) {
         if (keyCode == KeyEvent.KEYCODE_ENTER && keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
-            final EditText edit = (EditText) view;
             Log.i("JCD", "ENTER " + edit.getText().toString());
             new DownloadTask(MainApp.getUrl(edit.getText().toString()), new DownloadTask.DownloadCallback() {
                 @Override
@@ -35,9 +38,22 @@ public class ManualCodeListener implements View.OnKeyListener {
                     }
                 }
             });
-        } else {
-            view.setBackgroundColor(Color.WHITE);
         }
         return false;
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+        edit.setBackgroundColor(Color.WHITE);
+    }
+
+    @Override
+    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+        //
+    }
+
+    @Override
+    public void afterTextChanged(Editable editable) {
+        //
     }
 }

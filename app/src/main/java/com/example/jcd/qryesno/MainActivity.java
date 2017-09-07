@@ -49,8 +49,9 @@ public class MainActivity extends AppCompatActivity {
         instance = this;
         setContentView(R.layout.activity_main);
         manualEdit = (EditText)findViewById(R.id.manual_code);
-        ManualCodeListener manualCodeListener = new ManualCodeListener(MainActivity.this);
+        ManualCodeListener manualCodeListener = new ManualCodeListener(MainActivity.this, manualEdit);
         manualEdit.setOnKeyListener(manualCodeListener);
+        manualEdit.addTextChangedListener(manualCodeListener);
         members_list = (ListView) findViewById(R.id.members_list);
         adapter = new SimpleAdapter(MainActivity.this,
             members,
